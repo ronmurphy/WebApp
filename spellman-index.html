@@ -1,0 +1,1837 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpellManager</title>
+    <meta name="description" content="A D&D 5e spell selector with modal interface for multiple classes">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:ital,wght@0,100;0,300;0,400;0,500;0,700;0,800;0,900;1,100;1,300;1,400;1,500;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"> -->
+    <link rel="stylesheet" href="https://unpkg.com/browse/@material-ui/core@4.11.2/umd/material-ui.production.min.js">
+    <style>
+        body {
+            /* font-family: Arial, sans-serif; */
+            font-family: "Alegreya Sans", sans-serif;
+            font-weight: 400;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .modal {
+            display: block;
+            position: relative;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+        }
+        .close-btn, .send-to-btn, .long-rest-btn, .remove-spell-btn {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+        }
+        .close-btn {
+            top: 10px;
+            right: 10px;
+            background-color: #ff4d4d;
+            color: white;
+        }
+        .send-to-btn {
+            /* top: 10px;
+            right: 50px; */
+            top: 10px;
+            right: 10px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        .long-rest-btn {
+            top: 10px;
+            left: 10px;
+            background-color: #4a90e2;
+            color: white;
+        }
+        .remove-spell-btn {
+            bottom: 10px;
+            right: 10px;
+            background-color: #ff4d4d;
+            color: white;
+        }
+        select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 10px;
+        }
+        li {
+            background-color: #f9f9f9;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        li:hover {
+            background-color: #e9e9e9;
+        }
+        .send-to-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+        .send-to-modal .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .send-to-modal .column {
+            width: 30%;
+        }
+        .send-to-modal select {
+            width: 100%;
+            height: 100px;
+            resize: vertical;
+        }
+        .spell-slots {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .spell-slots input {
+            width: 30px;
+            text-align: center;
+        }
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+    </style>
+</head>
+<body>
+    <div class="modal">
+        <!-- <button class="close-btn"><span class="material-symbols-outlined">
+            close
+            </span></button> -->
+        <button class="send-to-btn" id="sendToBtn"><span class="material-symbols-outlined">
+            send
+            </span></button>
+        <button class="remove-spell-btn" id="removeSpellBtn"><span class="material-symbols-outlined">
+            delete
+            </span></button>
+        <h2>SpellManager</h2>
+        <select id="class-select">
+            <option value="">Select a class</option>
+            <option value="Arcane Trickster">Arcane Trickster</option>
+            <option value="Artificer">Artificer</option>
+            <option value="Bard">Bard</option>
+            <option value="Cleric">Cleric</option>
+            <option value="Druid">Druid</option>
+            <option value="Eldritch Knight">Eldritch Knight</option>
+            <option value="Paladin">Paladin</option>
+            <option value="Ranger">Ranger</option>
+            <option value="Sorcerer">Sorcerer</option>
+            <option value="Warlock">Warlock</option>
+            <option value="Wizard">Wizard</option>
+        </select>
+        <select id="spell-select">
+            <option value="">Select a spell</option>
+        </select>
+        <button id="add-spell">Add Spell</button>
+        <ul id="spell-list"></ul>
+    </div>
+
+    <div class="send-to-modal" id="sendToModal">
+        <button class="close-btn" id="closeSendToModal"><span class="material-symbols-outlined">
+            close
+            </span></button>
+        <button class="long-rest-btn" id="longRestBtn"><span class="material-symbols-outlined">
+            bedtime
+            </span></button>
+        <h2>ListManager</h2>
+        <select multiple id="level0Spells"></select>
+        <div class="spell-slots">
+            <input type="number" min="0" value="0" id="slot1">
+            <input type="number" min="0" value="0" id="slot2">
+            <input type="number" min="0" value="0" id="slot3">
+            <input type="number" min="0" value="0" id="slot4">
+            <input type="number" min="0" value="0" id="slot5">
+            <input type="number" min="0" value="0" id="slot6">
+            <input type="number" min="0" value="0" id="slot7">
+            <input type="number" min="0" value="0" id="slot8">
+            <input type="number" min="0" value="0" id="slot9">
+        </div>
+        <div class="row">
+            <div class="column"><select multiple id="level1Spells"></select></div>
+            <div class="column"><select multiple id="level2Spells"></select></div>
+            <div class="column"><select multiple id="level3Spells"></select></div>
+        </div>
+        <div class="row">
+            <div class="column"><select multiple id="level4Spells"></select></div>
+            <div class="column"><select multiple id="level5Spells"></select></div>
+            <div class="column"><select multiple id="level6Spells"></select></div>
+        </div>
+        <div class="row">
+            <div class="column"><select multiple id="level7Spells"></select></div>
+            <div class="column"><select multiple id="level8Spells"></select></div>
+            <div class="column"><select multiple id="level9Spells"></select></div>
+        </div>
+    </div>
+
+    <script>
+        // // get the listboxes
+        // const listBox0 = document.getElementById('level0Spells');
+        // const listBox1 = document.getElementById('level1Spells');
+        // const listBox2 = document.getElementById('level2Spells');
+        // const listBox3 = document.getElementById('level3Spells');
+        // const listBox4 = document.getElementById('level4Spells');
+        // const listBox5 = document.getElementById('level5Spells');
+        // const listBox6 = document.getElementById('level6Spells');
+        // const listBox7 = document.getElementById('level7Spells');
+        // const listBox8 = document.getElementById('level8Spells');
+        // const listBox9 = document.getElementById('level9Spells');
+
+        // // function to save the listbox items to a cookie
+        // function saveListBoxItems() {
+        //     const items0 = Array.from(listBox1.options).map(option => option.value);
+        //     const items1 = Array.from(listBox2.options).map(option => option.value);            
+        //     const items2 = Array.from(listBox2.options).map(option => option.value);
+        //     const items3 = Array.from(listBox1.options).map(option => option.value);
+        //     const items4 = Array.from(listBox2.options).map(option => option.value);
+        //     const items5 = Array.from(listBox1.options).map(option => option.value);
+        //     const items6 = Array.from(listBox2.options).map(option => option.value);
+        //     const items7 = Array.from(listBox1.options).map(option => option.value);
+        //     const items8 = Array.from(listBox2.options).map(option => option.value);
+        //     const items9 = Array.from(listBox1.options).map(option => option.value);
+
+        //     const cookieValue = JSON.stringify({ listBox1: items1, listBox2: items2 });
+        //     document.cookie = `listBoxItems=${cookieValue}; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+        // }
+
+        // // function to load the listbox items from a cookie
+        // function loadListBoxItems() {
+        //     const cookieValue = document.cookie.match(/listBoxItems=([^;]*)/);
+        //     if (cookieValue) {
+        //         const items = JSON.parse(cookieValue[1]);
+        //         listBox0.innerHTML = '';
+        //         listBox1.innerHTML = ''; 
+        //         listBox2.innerHTML = '';
+        //         listBox3.innerHTML = ''; 
+        //         listBox4.innerHTML = '';
+        //         listBox5.innerHTML = ''; 
+        //         listBox6.innerHTML = '';
+        //         listBox7.innerHTML = ''; 
+        //         listBox8.innerHTML = '';
+        //         listBox9.innerHTML = '';
+
+        //         items.listBox0.forEach(item => {
+        //             const option = document.createElement('option');
+        //             option.value = item;
+        //             listBox1.appendChild(option);
+        //         });
+
+        //         items.listBox1.forEach(item => {
+        //             const option = document.createElement('option');
+        //             option.value = item;
+        //             listBox2.appendChild(option);
+        //         });
+        //         items.listBox2.forEach(item => {
+        //             const option = document.createElement('option');
+        //             option.value = item;
+        //             listBox1.appendChild(option);
+        //         });
+
+        //         items.listBox3.forEach(item => {
+        //             const option = document.createElement('option');
+        //             option.value = item;
+        //             listBox2.appendChild(option);
+        //         });
+        //         items.listBox4.forEach(item => {
+        //             const option = document.createElement('option');
+        //             option.value = item;
+        //             listBox1.appendChild(option);
+        //         });
+
+        //         items.listBox5.forEach(item => {
+        //             const option = document.createElement('option');
+        //             option.value = item;
+        //             listBox2.appendChild(option);
+        //         });
+        //         items.listBox6.forEach(item => {
+        //             const option = document.createElement('option');
+        //             option.value = item;
+        //             listBox1.appendChild(option);
+        //         });
+
+        //         items.listBox7.forEach(item => {
+        //             const option = document.createElement('option');
+        //             option.value = item;
+        //             listBox2.appendChild(option);
+        //         });
+        //         items.listBox8.forEach(item => {
+        //             const option = document.createElement('option');
+        //             option.value = item;
+        //             listBox1.appendChild(option);
+        //         });
+
+        //         items.listBox9.forEach(item => {
+        //             const option = document.createElement('option');
+        //             option.value = item;
+        //             listBox2.appendChild(option);
+        //         });
+        //     }
+        // }
+
+        // // load the listbox items when the page loads
+        // loadListBoxItems();
+
+        // save the listbox items when the user leaves the page
+        // window.onbeforeunload = saveListBoxItems;
+        const spellsByClass = {
+            "Arcane Trickster": [
+                {name: "Mage Hand", level: 0},
+                {name: "Booming Blade", level: 0},
+                {name: "Encode Thoughts", level: 0},
+                {name: "Friends", level: 0},
+                {name: "Green-Flame Blade", level: 0},
+                {name: "Lightning Lure", level: 0},
+                {name: "Message", level: 0},
+                {name: "Minor Illusion", level: 0},
+                {name: "Sword Burst", level: 0},
+                {name: "True Strike", level: 0},
+                {name: "Charm Person", level: 1},
+                {name: "Color Spray", level: 1},
+                {name: "Disguise Self", level: 1},
+                {name: "Illusory Script", level: 1},
+                {name: "Silent Image", level: 1},
+                {name: "Sleep", level: 1},
+                {name: "Tasha's Hideous Laughter", level: 1},
+                {name: "Blur", level: 2},
+                {name: "Invisibility", level: 2},
+                {name: "Magic Mouth", level: 2},
+                {name: "Minor Illusion", level: 2},
+                {name: "Mirror Image", level: 2},
+                {name: "Phantasmal Force", level: 2},
+                {name: "Shadow Blade", level: 2},
+                {name: "Suggestion", level: 2},
+                {name: "Clairvoyance", level: 3},
+                {name: "Fear", level: 3},
+                {name: "Hypnotic Pattern", level: 3},
+                {name: "Major Image", level: 3},
+                {name: "Phantom Steed", level: 3},
+                {name: "Arcane Eye", level: 4},
+                {name: "Confusion", level: 4},
+                {name: "Greater Invisibility", level: 4},
+                {name: "Hallucinatory Terrain", level: 4},
+                {name: "Phantasmal Killer", level: 4}
+            ],
+            Artificer: [
+                {name: "Alarm", level: 1},
+                {name: "Cure Wounds", level: 1},
+                {name: "Detect Magic", level: 1},
+                {name: "Disguise Self", level: 1},
+                {name: "Expeditious Retreat", level: 1},
+                {name: "Faerie Fire", level: 1},
+                {name: "False Life", level: 1},
+                {name: "Feather Fall", level: 1},
+                {name: "Grease", level: 1},
+                {name: "Identify", level: 1},
+                {name: "Jump", level: 1},
+                {name: "Longstrider", level: 1},
+                {name: "Purify Food and Drink", level: 1},
+                {name: "Sanctuary", level: 1},
+                {name: "Snare", level: 1},
+                {name: "Aid", level: 2},
+                {name: "Alter Self", level: 2},
+                {name: "Arcane Lock", level: 2},
+                {name: "Blur", level: 2},
+                {name: "Continual Flame", level: 2},
+                {name: "Darkvision", level: 2},
+                {name: "Enhance Ability", level: 2},
+                {name: "Enlarge/Reduce", level: 2},
+                {name: "Heat Metal", level: 2},
+                {name: "Invisibility", level: 2},
+                {name: "Lesser Restoration", level: 2},
+                {name: "Levitate", level: 2},
+                {name: "Magic Mouth", level: 2},
+                {name: "Magic Weapon", level: 2},
+                {name: "Protection from Poison", level: 2},
+                {name: "Pyrotechnics", level: 2},
+                {name: "Rope Trick", level: 2},
+                {name: "See Invisibility", level: 2},
+                {name: "Skywrite", level: 2},
+                {name: "Spider Climb", level: 2},
+                {name: "Web", level: 2},
+                {name: "Blink", level: 3},
+                {name: "Catnap", level: 3},
+                {name: "Create Food and Water", level: 3},
+                {name: "Dispel Magic", level: 3},
+                {name: "Elemental Weapon", level: 3},
+                {name: "Flame Arrows", level: 3},
+                {name: "Fly", level: 3},
+                {name: "Glyph of Warding", level: 3},
+                {name: "Haste", level: 3},
+                {name: "Intellect Fortress", level: 3},
+                {name: "Protection from Energy", level: 3},
+                {name: "Revivify", level: 3},
+                {name: "Tiny Servant", level: 3},
+                {name: "Water Breathing", level: 3},
+                {name: "Water Walk", level: 3},
+                {name: "Arcane Eye", level: 4},
+                {name: "Elemental Bane", level: 4},
+                {name: "Fabricate", level: 4},
+                {name: "Freedom of Movement", level: 4},
+                {name: "Leomund's Secret Chest", level: 4},
+                {name: "Mordenkainen's Faithful Hound", level: 4},
+                {name: "Mordenkainen's Private Sanctum", level: 4},
+                {name: "Otiluke's Resilient Sphere", level: 4},
+                {name: "Stone Shape", level: 4},
+                {name: "Stoneskin", level: 4},
+                {name: "Summon Construct", level: 4},
+                {name: "Animate Objects", level: 5},
+                {name: "Bigby's Hand", level: 5},
+                {name: "Creation", level: 5},
+                {name: "Greater Restoration", level: 5},
+                {name: "Skill Empowerment", level: 5},
+                {name: "Transmute Rock", level: 5},
+                {name: "Wall of Stone", level: 5}
+            ],
+            Bard: [
+                {name: "Blade Ward", level: 0},
+                {name: "Dancing Lights", level: 0},
+                {name: "Friends", level: 0},
+                {name: "Light", level: 0},
+                {name: "Mage Hand", level: 0},
+                {name: "Mending", level: 0},
+                {name: "Message", level: 0},
+                {name: "Minor Illusion", level: 0},
+                {name: "Prestidigitation", level: 0},
+                {name: "Thunderclap", level: 0},
+                {name: "True Strike", level: 0},
+                {name: "Vicious Mockery", level: 0},
+                {name: "Animal Friendship", level: 1},
+                {name: "Bane", level: 1},
+                {name: "Charm Person", level: 1},
+                {name: "Comprehend Languages", level: 1},
+                {name: "Cure Wounds", level: 1},
+                {name: "Detect Magic", level: 1},
+                {name: "Disguise Self", level: 1},
+                {name: "Dissonant Whispers", level: 1},
+                {name: "Earth Tremor", level: 1},
+                {name: "Faerie Fire", level: 1},
+                {name: "Feather Fall", level: 1},
+                {name: "Healing Word", level: 1},
+                {name: "Heroism", level: 1},
+                {name: "Identify", level: 1},
+                {name: "Illusory Script", level: 1},
+                {name: "Longstrider", level: 1},
+                {name: "Silent Image", level: 1},
+                {name: "Sleep", level: 1},
+                {name: "Speak with Animals", level: 1},
+                {name: "Tasha's Hideous Laughter", level: 1},
+                {name: "Thunderwave", level: 1},
+                {name: "Unseen Servant", level: 1},
+                {name: "Animal Messenger", level: 2},
+                {name: "Blindness/Deafness", level: 2},
+                {name: "Calm Emotions", level: 2},
+                {name: "Cloud of Daggers", level: 2},
+                {name: "Crown of Madness", level: 2},
+                {name: "Detect Thoughts", level: 2},
+                {name: "Enhance Ability", level: 2},
+                {name: "Enthrall", level: 2},
+                {name: "Heat Metal", level: 2},
+                {name: "Hold Person", level: 2},
+                {name: "Invisibility", level: 2},
+                {name: "Knock", level: 2},
+                {name: "Lesser Restoration", level: 2},
+                {name: "Locate Animals or Plants", level: 2},
+                {name: "Locate Object", level: 2},
+                {name: "Magic Mouth", level: 2},
+                {name: "Phantasmal Force", level: 2},
+                {name: "Pyrotechnics", level: 2},
+                {name: "See Invisibility", level: 2},
+                {name: "Shatter", level: 2},
+                {name: "Silence", level: 2},
+                {name: "Skywrite", level: 2},
+                {name: "Suggestion", level: 2},
+                {name: "Warding Wind", level: 2},
+                {name: "Zone of Truth", level: 2},
+                {name: "Bestow Curse", level: 3},
+                {name: "Catnap", level: 3},
+                {name: "Clairvoyance", level: 3},
+                {name: "Dispel Magic", level: 3},
+                {name: "Enemies Abound", level: 3},
+                {name: "Fear", level: 3},
+                {name: "Feign Death", level: 3},
+                {name: "Glyph of Warding", level: 3},
+                {name: "Hypnotic Pattern", level: 3},
+                {name: "Intellect Fortress", level: 3},
+                {name: "Leomund's Tiny Hut", level: 3},
+                {name: "Major Image", level: 3},
+                {name: "Motivational Speech", level: 3},
+                {name: "Nondetection", level: 3},
+                {name: "Plant Growth", level: 3},
+                {name: "Sending", level: 3},
+                {name: "Speak with Dead", level: 3},
+                {name: "Speak with Plants", level: 3},
+                {name: "Stinking Cloud", level: 3},
+                {name: "Tongues", level: 3},
+                {name: "Charm Monster", level: 4},
+                {name: "Compulsion", level: 4},
+                {name: "Confusion", level: 4},
+                {name: "Dimension Door", level: 4},
+                {name: "Freedom of Movement", level: 4},
+                {name: "Greater Invisibility", level: 4},
+                {name: "Hallucinatory Terrain", level: 4},
+                {name: "Locate Creature", level: 4},
+                {name: "Polymorph", level: 4},
+                {name: "Animate Objects", level: 5},
+                {name: "Awaken", level: 5},
+                {name: "Dominate Person", level: 5},
+                {name: "Dream", level: 5},
+                {name: "Geas", level: 5},
+                {name: "Greater Restoration", level: 5},
+                {name: "Hold Monster", level: 5},
+                {name: "Legend Lore", level: 5},
+                {name: "Mass Cure Wounds", level: 5},
+                {name: "Mislead", level: 5},
+                {name: "Modify Memory", level: 5},
+                {name: "Planar Binding", level: 5},
+                {name: "Raise Dead", level: 5},
+                {name: "Scrying", level: 5},
+                {name: "Seeming", level: 5},
+                {name: "Skill Empowerment", level: 5},
+                {name: "Synaptic Static", level: 5},
+                {name: "Teleportation Circle", level: 5},
+                {name: "Eyebite", level: 6},
+                {name: "Find the Path", level: 6},
+                {name: "Guards and Wards", level: 6},
+                {name: "Mass Suggestion", level: 6},
+                {name: "Otto's Irresistible Dance", level: 6},
+                {name: "Programmed Illusion", level: 6},
+                {name: "True Seeing", level: 6},
+                {name: "Dream of the Blue Veil", level: 7},
+                {name: "Etherealness", level: 7},
+                {name: "Forcecage", level: 7},
+                {name: "Mirage Arcane", level: 7},
+                {name: "Mordenkainen's Magnificent Mansion", level: 7},
+                {name: "Mordenkainen's Sword", level: 7},
+                {name: "Prismatic Spray", level: 7},
+                {name: "Project Image", level: 7},
+                {name: "Regenerate", level: 7},
+                {name: "Resurrection", level: 7},
+                {name: "Symbol", level: 7},
+                {name: "Teleport", level: 7},
+                {name: "Dominate Monster", level: 8},
+                {name: "Feeblemind", level: 8},
+                {name: "Glibness", level: 8},
+                {name: "Mind Blank", level: 8},
+                {name: "Power Word Stun", level: 8},
+                {name: "Foresight", level: 9},
+                {name: "Mass Polymorph", level: 9},
+                {name: "Power Word Heal", level: 9},
+                {name: "Power Word Kill", level: 9},
+                {name: "Psychic Scream", level: 9},
+                {name: "True Polymorph", level: 9}
+            ],
+            Cleric: [
+                {name: "Guidance", level: 0},
+                {name: "Light", level: 0},
+                {name: "Mending", level: 0},
+                {name: "Resistance", level: 0},
+                {name: "Sacred Flame", level: 0},
+                {name: "Spare the Dying", level: 0},
+                {name: "Thaumaturgy", level: 0},
+                {name: "Toll the Dead", level: 0},
+                {name: "Word of Radiance", level: 0},
+                {name: "Bane", level: 1},
+                {name: "Bless", level: 1},
+                {name: "Command", level: 1},
+                {name: "Create or Destroy Water", level: 1},
+                {name: "Cure Wounds", level: 1},
+                {name: "Detect Evil and Good", level: 1},
+                {name: "Detect Magic", level: 1},
+                {name: "Detect Poison and Disease", level: 1},
+                {name: "Guiding Bolt", level: 1},
+                {name: "Healing Word", level: 1},
+                {name: "Inflict Wounds", level: 1},
+                {name: "Protection from Evil and Good", level: 1},
+                {name: "Purify Food and Drink", level: 1},
+                {name: "Sanctuary", level: 1},
+                {name: "Shield of Faith", level: 1},
+                {name: "Aid", level: 2},
+                {name: "Augury", level: 2},
+                {name: "Blindness/Deafness", level: 2},
+                {name: "Calm Emotions", level: 2},
+                {name: "Continual Flame", level: 2},
+                {name: "Enhance Ability", level: 2},
+                {name: "Find Traps", level: 2},
+                {name: "Gentle Repose", level: 2},
+                {name: "Hold Person", level: 2},
+                {name: "Lesser Restoration", level: 2},
+                {name: "Locate Object", level: 2},
+                {name: "Prayer of Healing", level: 2},
+                {name: "Protection from Poison", level: 2},
+                {name: "Silence", level: 2},
+                {name: "Spiritual Weapon", level: 2},
+                {name: "Warding Bond", level: 2},
+                {name: "Zone of Truth", level: 2},
+                {name: "Animate Dead", level: 3},
+                {name: "Beacon of Hope", level: 3},
+                {name: "Bestow Curse", level: 3},
+                {name: "Clairvoyance", level: 3},
+                {name: "Create Food and Water", level: 3},
+                {name: "Daylight", level: 3},
+                {name: "Dispel Magic", level: 3},
+                {name: "Feign Death", level: 3},
+                {name: "Glyph of Warding", level: 3},
+                {name: "Magic Circle", level: 3},
+                {name: "Mass Healing Word", level: 3},
+                {name: "Meld into Stone", level: 3},
+                {name: "Protection from Energy", level: 3},
+                {name: "Remove Curse", level: 3},
+                {name: "Revivify", level: 3},
+                {name: "Sending", level: 3},
+                {name: "Speak with Dead", level: 3},
+                {name: "Spirit Guardians", level: 3},
+                {name: "Tongues", level: 3},
+                {name: "Water Walk", level: 3},
+                {name: "Banishment", level: 4},
+                {name: "Control Water", level: 4},
+                {name: "Death Ward", level: 4},
+                {name: "Divination", level: 4},
+                {name: "Freedom of Movement", level: 4},
+                {name: "Guardian of Faith", level: 4},
+                {name: "Locate Creature", level: 4},
+                {name: "Stone Shape", level: 4},
+                {name: "Commune", level: 5},
+                {name: "Contagion", level: 5},
+                {name: "Dispel Evil and Good", level: 5},
+                {name: "Flame Strike", level: 5},
+                {name: "Geas", level: 5},
+                {name: "Greater Restoration", level: 5},
+                {name: "Hallow", level: 5},
+                {name: "Insect Plague", level: 5},
+                {name: "Legend Lore", level: 5},
+                {name: "Mass Cure Wounds", level: 5},
+                {name: "Planar Binding", level: 5},
+                {name: "Raise Dead", level: 5},
+                {name: "Scrying", level: 5},
+                {name: "Blade Barrier", level: 6},
+                {name: "Create Undead", level: 6},
+                {name: "Find the Path", level: 6},
+                {name: "Forbiddance", level: 6},
+                {name: "Harm", level: 6},
+                {name: "Heal", level: 6},
+                {name: "Heroes' Feast", level: 6},
+                {name: "Planar Ally", level: 6},
+                {name: "True Seeing", level: 6},
+                {name: "Word of Recall", level: 6},
+                {name: "Conjure Celestial", level: 7},
+                {name: "Divine Word", level: 7},
+                {name: "Etherealness", level: 7},
+                {name: "Fire Storm", level: 7},
+                {name: "Plane Shift", level: 7},
+                {name: "Regenerate", level: 7},
+                {name: "Resurrection", level: 7},
+                {name: "Symbol", level: 7},
+                {name: "Antimagic Field", level: 8},
+                {name: "Control Weather", level: 8},
+                {name: "Earthquake", level: 8},
+                {name: "Holy Aura", level: 8},
+                {name: "Astral Projection", level: 9},
+                {name: "Gate", level: 9},
+                {name: "Mass Heal", level: 9},
+                {name: "True Resurrection", level: 9}
+            ],
+            Druid: [
+                {name: "Control Flames", level: 0},
+                {name: "Create Bonfire", level: 0},
+                {name: "Druidcraft", level: 0},
+                {name: "Frostbite", level: 0},
+                {name: "Guidance", level: 0},
+                {name: "Gust", level: 0},
+                {name: "Infestation", level: 0},
+                {name: "Magic Stone", level: 0},
+                {name: "Mending", level: 0},
+                {name: "Mold Earth", level: 0},
+                {name: "Poison Spray", level: 0},
+                {name: "Produce Flame", level: 0},
+                {name: "Primal Savagery", level: 0},
+                {name: "Resistance", level: 0},
+                {name: "Shape Water", level: 0},
+                {name: "Shillelagh", level: 0},
+                {name: "Thorn Whip", level: 0},
+                {name: "Thunderclap", level: 0},
+                {name: "Absorb Elements", level: 1},
+                {name: "Animal Friendship", level: 1},
+                {name: "Beast Bond", level: 1},
+                {name: "Charm Person", level: 1},
+                {name: "Create or Destroy Water", level: 1},
+                {name: "Cure Wounds", level: 1},
+                {name: "Detect Magic", level: 1},
+                {name: "Detect Poison and Disease", level: 1},
+                {name: "Earth Tremor", level: 1},
+                {name: "Entangle", level: 1},
+                {name: "Faerie Fire", level: 1},
+                {name: "Fog Cloud", level: 1},
+                {name: "Goodberry", level: 1},
+                {name: "Healing Word", level: 1},
+                {name: "Ice Knife", level: 1},
+                {name: "Jump", level: 1},
+                {name: "Longstrider", level: 1},
+                {name: "Purify Food and Drink", level: 1},
+                {name: "Snare", level: 1},
+                {name: "Speak with Animals", level: 1},
+                {name: "Thunderwave", level: 1},
+                {name: "Animal Messenger", level: 2},
+                {name: "Augury", level: 2},
+                {name: "Barkskin", level: 2},
+                {name: "Beast Sense", level: 2},
+                {name: "Darkvision", level: 2},
+                {name: "Dust Devil", level: 2},
+                {name: "Earthbind", level: 2},
+                {name: "Enhance Ability", level: 2},
+                {name: "Find Traps", level: 2},
+                {name: "Flame Blade", level: 2},
+                {name: "Flaming Sphere", level: 2},
+                {name: "Gust of Wind", level: 2},
+                {name: "Healing Spirit", level: 2},
+                {name: "Heat Metal", level: 2},
+                {name: "Hold Person", level: 2},
+                {name: "Lesser Restoration", level: 2},
+                {name: "Locate Animals or Plants", level: 2},
+                {name: "Locate Object", level: 2},
+                {name: "Moonbeam", level: 2},
+                {name: "Pass without Trace", level: 2},
+                {name: "Protection from Poison", level: 2},
+                {name: "Skywrite", level: 2},
+                {name: "Spike Growth", level: 2},
+                {name: "Summon Beast", level: 2},
+                {name: "Warding Wind", level: 2},
+                {name: "Animate Dead", level: 3},
+                {name: "Call Lightning", level: 3},
+                {name: "Conjure Animals", level: 3},
+                {name: "Daylight", level: 3},
+                {name: "Dispel Magic", level: 3},
+                {name: "Erupting Earth", level: 3},
+                {name: "Feign Death", level: 3},
+                {name: "Flame Arrows", level: 3},
+                {name: "Meld into Stone", level: 3},
+                {name: "Plant Growth", level: 3},
+                {name: "Protection from Energy", level: 3},
+                {name: "Sleet Storm", level: 3},
+                {name: "Speak with Plants", level: 3},
+                {name: "Summon Fey", level: 3},
+                {name: "Tidal Wave", level: 3},
+                {name: "Wall of Water", level: 3},
+                {name: "Water Breathing", level: 3},
+                {name: "Water Walk", level: 3},
+                {name: "Wind Wall", level: 3},
+                {name: "Blight", level: 4},
+                {name: "Charm Monster", level: 4},
+                {name: "Confusion", level: 4},
+                {name: "Conjure Minor Elementals", level: 4},
+                {name: "Conjure Woodland Beings", level: 4},
+                {name: "Control Water", level: 4},
+                {name: "Dominate Beast", level:4},
+                {name: "Elemental Bane", level: 4},
+                {name: "Freedom of Movement", level: 4},
+                {name: "Giant Insect", level: 4},
+                {name: "Grasping Vine", level: 4},
+                {name: "Guardian of Nature", level: 4},
+                {name: "Hallucinatory Terrain", level: 4},
+                {name: "Ice Storm", level: 4},
+                {name: "Locate Creature", level: 4},
+                {name: "Polymorph", level: 4},
+                {name: "Stone Shape", level: 4},
+                {name: "Stoneskin", level: 4},
+                {name: "Summon Elemental", level: 4},
+                {name: "Wall of Fire", level: 4},
+                {name: "Watery Sphere", level: 4},
+                {name: "Antilife Shell", level: 5},
+                {name: "Awaken", level: 5},
+                {name: "Commune with Nature", level: 5},
+                {name: "Conjure Elemental", level: 5},
+                {name: "Contagion", level:5},
+                {name: "Control Winds", level: 5},
+                {name: "Geas", level: 5},
+                {name: "Greater Restoration", level: 5},
+                {name: "Insect Plague", level: 5},
+                {name: "Maelstrom", level: 5},
+                {name: "Mass Cure Wounds", level: 5},
+                {name: "Planar Binding", level: 5},
+                {name: "Reincarnate", level: 5},
+                {name: "Scrying", level: 5},
+                {name: "Transmute Rock", level: 5},
+                {name: "Tree Stride", level: 5},
+                {name: "Wall of Stone", level: 5},
+                {name: "Wrath of Nature", level: 5},
+                {name: "Bones of the Earth", level: 6},
+                {name: "Conjure Fey", level: 6},
+                {name: "Druid Grove", level: 6},
+                {name: "Find the Path", level: 6},
+                {name: "Heal", level: 6},
+                {name: "Heroes' Feast", level: 6},
+                {name: "Investiture of Flame", level: 6},
+                {name: "Investiture of Ice", level: 6},
+                {name: "Investiture of Stone", level: 6},
+                {name: "Investiture of Wind", level: 6},
+                {name: "Move Earth", level: 6},
+                {name: "Primordial Ward", level: 6},
+                {name: "Sunbeam", level: 6},
+                {name: "Transport via Plants", level: 6},
+                {name: "Wall of Thorns", level: 6},
+                {name: "Wind Walk", level: 6},
+                {name: "Fire Storm", level: 7},
+                {name: "Mirage Arcane", level: 7},
+                {name: "Plane Shift", level: 7},
+                {name: "Regenerate", level: 7},
+                {name: "Reverse Gravity", level: 7},
+                {name: "Whirlwind", level: 7},
+                {name: "Animal Shapes", level: 8},
+                {name: "Antipathy/Sympathy", level: 8},
+                {name: "Control Weather", level: 8},
+                {name: "Earthquake", level: 8},
+                {name: "Feeblemind", level: 8},
+                {name: "Sunburst", level: 8},
+                {name: "Tsunami", level: 8},
+                {name: "Foresight", level: 9},
+                {name: "Shapechange", level: 9},
+                {name: "Storm of Vengeance", level: 9},
+                {name: "True Resurrection", level: 9}
+            ],
+            "Eldritch Knight": [
+                {name: "Blade Ward", level: 0},
+                {name: "Booming Blade", level: 0},
+                {name: "Chill Touch", level: 0},
+                {name: "Control Flames", level: 0},
+                {name: "Create Bonfire", level: 0},
+                {name: "Dancing Lights", level: 0},
+                {name: "Fire Bolt", level: 0},
+                {name: "Friends", level: 0},
+                {name: "Frostbite", level: 0},
+                {name: "Green-Flame Blade", level: 0},
+                {name: "Gust", level: 0},
+                {name: "Light", level: 0},
+                {name: "Lightning Lure", level: 0},
+                {name: "Mage Hand", level: 0},
+                {name: "Mending", level: 0},
+                {name: "Message", level: 0},
+                {name: "Minor Illusion", level: 0},
+                {name: "Mold Earth", level: 0},
+                {name: "Prestidigitation", level: 0},
+                {name: "Ray of Frost", level: 0},
+                {name: "Shape Water", level: 0},
+                {name: "Shocking Grasp", level: 0},
+                {name: "Sword Burst", level: 0},
+                {name: "Thunderclap", level: 0},
+                {name: "True Strike", level: 0},
+                {name: "Absorb Elements", level: 1},
+                {name: "Alarm", level: 1},
+                {name: "Burning Hands", level: 1},
+                {name: "Chromatic Orb", level: 1},
+                {name: "Color Spray", level: 1},
+                {name: "Detect Magic", level: 1},
+                {name: "Disguise Self", level: 1},
+                {name: "Expeditious Retreat", level: 1},
+                {name: "False Life", level: 1},
+                {name: "Feather Fall", level: 1},
+                {name: "Find Familiar", level: 1},
+                {name: "Fog Cloud", level: 1},
+                {name: "Jump", level: 1},
+                {name: "Longstrider", level: 1},
+                {name: "Mage Armor", level: 1},
+                {name: "Magic Missile", level: 1},
+                {name: "Protection from Evil and Good", level: 1},
+                {name: "Shield", level: 1},
+                {name: "Sleep", level: 1},
+                {name: "Thunderwave", level: 1},
+                {name: "Witch Bolt", level: 1},
+                {name: "Alter Self", level: 2},
+                {name: "Arcane Lock", level: 2},
+                {name: "Blur", level: 2},
+                {name: "Continual Flame", level: 2},
+                {name: "Darkness", level: 2},
+                {name: "Darkvision", level: 2},
+                {name: "Enhance Ability", level: 2},
+                {name: "Enlarge/Reduce", level: 2},
+                {name: "Gust of Wind", level: 2},
+                {name: "Hold Person", level: 2},
+                {name: "Invisibility", level: 2},
+                {name: "Knock", level: 2},
+                {name: "Levitate", level: 2},
+                {name: "Magic Weapon", level: 2},
+                {name: "Mirror Image", level: 2},
+                {name: "Misty Step", level: 2},
+                {name: "Rope Trick", level: 2},
+                {name: "Scorching Ray", level: 2},
+                {name: "See Invisibility", level: 2},
+                {name: "Shadow Blade", level: 2},
+                {name: "Shatter", level: 2},
+                {name: "Spider Climb", level: 2},
+                {name: "Web", level: 2},
+                {name: "Blink", level: 3},
+                {name: "Counterspell", level: 3},
+                {name: "Dispel Magic", level: 3},
+                {name: "Fireball", level: 3},
+                {name: "Fly", level: 3},
+                {name: "Gaseous Form", level: 3},
+                {name: "Haste", level: 3},
+                {name: "Lightning Bolt", level: 3},
+                {name: "Magic Circle", level: 3},
+                {name: "Major Image", level: 3},
+                {name: "Protection from Energy", level: 3},
+                {name: "Sending", level: 3},
+                {name: "Slow", level: 3},
+                {name: "Thunder Step", level: 3},
+                {name: "Water Breathing", level: 3},
+                {name: "Water Walk", level: 3}
+            ],
+            Paladin: [
+                {name: "Bless", level: 1},
+                {name: "Command", level: 1},
+                {name: "Compelled Duel", level: 1},
+                {name: "Cure Wounds", level: 1},
+                {name: "Detect Evil and Good", level: 1},
+                {name: "Detect Magic", level: 1},
+                {name: "Detect Poison and Disease", level: 1},
+                {name: "Divine Favor", level: 1},
+                {name: "Heroism", level: 1},
+                {name: "Protection from Evil and Good", level: 1},
+                {name: "Purify Food and Drink", level: 1},
+                {name: "Searing Smite", level: 1},
+                {name: "Shield of Faith", level: 1},
+                {name: "Thunderous Smite", level: 1},
+                {name: "Wrathful Smite", level: 1},
+                {name: "Aid", level: 2},
+                {name: "Branding Smite", level: 2},
+                {name: "Find Steed", level: 2},
+                {name: "Gentle Repose", level: 2},
+                {name: "Lesser Restoration", level: 2},
+                {name: "Locate Object", level: 2},
+                {name: "Magic Weapon", level: 2},
+                {name: "Protection from Poison", level: 2},
+                {name: "Zone of Truth", level: 2},
+                {name: "Aura of Vitality", level: 3},
+                {name: "Blinding Smite", level: 3},
+                {name: "Create Food and Water", level: 3},
+                {name: "Crusader's Mantle", level: 3},
+                {name: "Daylight", level: 3},
+                {name: "Dispel Magic", level: 3},
+                {name: "Elemental Weapon", level: 3},
+                {name: "Magic Circle", level: 3},
+                {name: "Remove Curse", level: 3},
+                {name: "Revivify", level: 3},
+                {name: "Spirit Shroud", level: 3},
+                {name: "Aura of Life", level: 4},
+                {name: "Aura of Purity", level: 4},
+                {name: "Banishment", level: 4},
+                {name: "Death Ward", level: 4},
+                {name: "Find Greater Steed", level: 4},
+                {name: "Locate Creature", level: 4},
+                {name: "Staggering Smite", level: 4},
+                {name: "Banishing Smite", level: 5},
+                {name: "Circle of Power", level: 5},
+                {name: "Destructive Wave", level: 5},
+                {name: "Dispel Evil and Good", level: 5},
+                {name: "Geas", level: 5},
+                {name: "Holy Weapon", level: 5},
+                {name: "Raise Dead", level: 5}
+            ],
+            Ranger: [
+                {name: "Alarm", level: 1},
+                {name: "Animal Friendship", level: 1},
+                {name: "Cure Wounds", level: 1},
+                {name: "Detect Magic", level: 1},
+                {name: "Detect Poison and Disease", level: 1},
+                {name: "Ensnaring Strike", level: 1},
+                {name: "Fog Cloud", level: 1},
+                {name: "Goodberry", level: 1},
+                {name: "Hail of Thorns", level: 1},
+                {name: "Hunter's Mark", level: 1},
+                {name: "Jump", level: 1},
+                {name: "Longstrider", level: 1},
+                {name: "Speak with Animals", level: 1},
+                {name: "Animal Messenger", level: 2},
+                {name: "Barkskin", level: 2},
+                {name: "Beast Sense", level: 2},
+                {name: "Cordon of Arrows", level: 2},
+                {name: "Darkvision", level: 2},
+                {name: "Find Traps", level: 2},
+                {name: "Lesser Restoration", level: 2},
+                {name: "Locate Animals or Plants", level: 2},
+                {name: "Locate Object", level: 2},
+                {name: "Pass without Trace", level: 2},
+                {name: "Protection from Poison", level: 2},
+                {name: "Silence", level: 2},
+                {name: "Spike Growth", level: 2},
+                {name: "Conjure Animals", level: 3},
+                {name: "Conjure Barrage", level: 3},
+                {name: "Daylight", level: 3},
+                {name: "Flame Arrows", level: 3},
+                {name: "Lightning Arrow", level: 3},
+                {name: "Nondetection", level: 3},
+                {name: "Plant Growth", level: 3},
+                {name: "Protection from Energy", level: 3},
+                {name: "Speak with Plants", level: 3},
+                {name: "Water Breathing", level: 3},
+                {name: "Water Walk", level: 3},
+                {name: "Wind Wall", level: 3},
+                {name: "Conjure Woodland Beings", level: 4},
+                {name: "Freedom of Movement", level: 4},
+                {name: "Grasping Vine", level: 4},
+                {name: "Guardian of Nature", level: 4},
+                {name: "Locate Creature", level: 4},
+                {name: "Stoneskin", level: 4},
+                {name: "Commune with Nature", level: 5},
+                {name: "Conjure Volley", level: 5},
+                {name: "Steel Wind Strike", level: 5},
+                {name: "Swift Quiver", level: 5},
+                {name: "Tree Stride", level: 5}
+            ],
+            Sorcerer: [
+                {name: "Acid Splash", level: 0},
+                {name: "Blade Ward", level: 0},
+                {name: "Booming Blade", level: 0},
+                {name: "Chill Touch", level: 0},
+                {name: "Control Flames", level: 0},
+                {name: "Create Bonfire", level: 0},
+                {name: "Dancing Lights", level: 0},
+                {name: "Fire Bolt", level: 0},
+                {name: "Friends", level: 0},
+                {name: "Frostbite", level: 0},
+                {name: "Green-Flame Blade", level: 0},
+                {name: "Gust", level: 0},
+                {name: "Infestation", level: 0},
+                {name: "Light", level: 0},
+                {name: "Lightning Lure", level: 0},
+                {name: "Mage Hand", level: 0},
+                {name: "Mending", level: 0},
+                {name: "Message", level: 0},
+                {name: "Mind Sliver", level: 0},
+                {name: "Minor Illusion", level: 0},
+                {name: "Mold Earth", level: 0},
+                {name: "Poison Spray", level: 0},
+                {name: "Prestidigitation", level: 0},
+                {name: "Ray of Frost", level: 0},
+                {name: "Shape Water", level: 0},
+                {name: "Shocking Grasp", level: 0},
+                {name: "Sword Burst", level: 0},
+                {name: "Thunderclap", level: 0},
+                {name: "True Strike", level: 0},
+                {name: "Absorb Elements", level: 1},
+                {name: "Catapult", level: 1},
+                {name: "Chaos Bolt", level: 1},
+                {name: "Charm Person", level: 1},
+                {name: "Chromatic Orb", level: 1},
+                {name: "Color Spray", level: 1},
+                {name: "Comprehend Languages", level: 1},
+                {name: "Detect Magic", level: 1},
+                {name: "Disguise Self", level: 1},
+                {name: "Distort Value", level: 1},
+                {name: "Earth Tremor", level: 1},
+                {name: "Expeditious Retreat", level: 1},
+                {name: "False Life", level: 1},
+                {name: "Feather Fall", level: 1},
+                {name: "Fog Cloud", level: 1},
+                {name: "Ice Knife", level: 1},
+                {name: "Jump", level: 1},
+                {name: "Mage Armor", level: 1},
+                {name: "Magic Missile", level: 1},
+                {name: "Ray of Sickness", level: 1},
+                {name: "Shield", level: 1},
+                {name: "Silent Image", level: 1},
+                {name: "Sleep", level: 1},
+                {name: "Tasha's Hideous Laughter", level: 1},
+                {name: "Thunderwave", level: 1},
+                {name: "Witch Bolt", level: 1},
+                {name: "Alter Self", level: 2},
+                {name: "Blindness/Deafness", level: 2},
+                {name: "Blur", level: 2},
+                {name: "Cloud of Daggers", level: 2},
+                {name: "Crown of Madness", level: 2},
+                {name: "Darkness", level: 2},
+                {name: "Darkvision", level: 2},
+                {name: "Detect Thoughts", level: 2},
+                {name: "Enhance Ability", level: 2},
+                {name: "Enlarge/Reduce", level: 2},
+                {name: "Gust of Wind", level: 2},
+                {name: "Hold Person", level: 2},
+                {name: "Invisibility", level: 2},
+                {name: "Knock", level: 2},
+                {name: "Levitate", level: 2},
+                {name: "Mirror Image", level: 2},
+                {name: "Misty Step", level: 2},
+                {name: "Phantasmal Force", level: 2},
+                {name: "Scorching Ray", level: 2},
+                {name: "See Invisibility", level: 2},
+                {name: "Shatter", level: 2},
+                {name: "Spider Climb", level: 2},
+                {name: "Suggestion", level: 2},
+                {name: "Warding Wind", level: 2},
+                {name: "Web", level: 2},
+                {name: "Blink", level: 3},
+                {name: "Catnap", level: 3},
+                {name: "Clairvoyance", level: 3},
+                {name: "Counterspell", level: 3},
+                {name: "Daylight", level: 3},
+                {name: "Dispel Magic", level: 3},
+                {name: "Enemies Abound", level: 3},
+                {name: "Erupting Earth", level: 3},
+                {name: "Fear", level: 3},
+                {name: "Fireball", level: 3},
+                {name: "Flame Arrows", level: 3},
+                {name: "Fly", level: 3},
+                {name: "Gaseous Form", level: 3},
+                {name: "Haste", level: 3},
+                {name: "Hypnotic Pattern", level: 3},
+                {name: "Intellect Fortress", level: 3},
+                {name: "Lightning Bolt", level: 3},
+                {name: "Major Image", level: 3},
+                {name: "Melf's Minute Meteors", level: 3},
+                {name: "Protection from Energy", level: 3},
+                {name: "Sleet Storm", level: 3},
+                {name: "Slow", level: 3},
+                {name: "Stinking Cloud", level: 3},
+                {name: "Thunder Step", level: 3},
+                {name: "Tidal Wave", level: 3},
+                {name: "Tongues", level: 3},
+                {name: "Water Breathing", level: 3},
+                {name: "Water Walk", level: 3},
+                {name: "Banishment", level: 4},
+                {name: "Blight", level: 4},
+                {name: "Charm Monster", level: 4},
+                {name: "Confusion", level: 4},
+                {name: "Dimension Door", level: 4},
+                {name: "Dominate Beast", level: 4},
+                {name: "Fire Shield", level: 4},
+                {name: "Greater Invisibility", level: 4},
+                {name: "Ice Storm", level: 4},
+                {name: "Polymorph", level: 4},
+                {name: "Sickening Radiance", level: 4},
+                {name: "Stone Shape", level: 4},
+                {name: "Stoneskin", level: 4},
+                {name: "Storm Sphere", level: 4},
+                {name: "Vitriolic Sphere", level: 4},
+                {name: "Wall of Fire", level: 4},
+                {name: "Watery Sphere", level: 4},
+                {name: "Animate Objects", level: 5},
+                {name: "Bigby's Hand", level: 5},
+                {name: "Cloudkill", level: 5},
+                {name: "Cone of Cold", level: 5},
+                {name: "Control Winds", level: 5},
+                {name: "Creation", level: 5},
+                {name: "Dominate Person", level: 5},
+                {name: "Dream", level: 5},
+                {name: "Enervation", level: 5},
+                {name: "Far Step", level: 5},
+                {name: "Hold Monster", level: 5},
+                {name: "Immolation", level: 5},
+                {name: "Insect Plague", level: 5},
+                {name: "Seeming", level: 5},
+                {name: "Skill Empowerment", level: 5},
+                {name: "Synaptic Static", level: 5},
+                {name: "Telekinesis", level: 5},
+                {name: "Teleportation Circle", level: 5},
+                {name: "Wall of Light", level: 5},
+                {name: "Wall of Stone", level: 5},
+                {name: "Arcane Gate", level: 6},
+                {name: "Chain Lightning", level: 6},
+                {name: "Circle of Death", level: 6},
+                {name: "Disintegrate", level: 6},
+                {name: "Eyebite", level: 6},
+                {name: "Globe of Invulnerability", level: 6},
+                {name: "Investiture of Flame", level: 6},
+                {name: "Investiture of Ice", level: 6},
+                {name: "Investiture of Stone", level: 6},
+                {name: "Investiture of Wind", level: 6},
+                {name: "Mass Suggestion", level: 6},
+                {name: "Mental Prison", level: 6},
+                {name: "Move Earth", level: 6},
+                {name: "Scatter", level: 6},
+                {name: "Sunbeam", level: 6},
+                {name: "True Seeing", level: 6},
+                {name: "Crown of Stars", level: 7},
+                {name: "Delayed Blast Fireball", level: 7},
+                {name: "Etherealness", level: 7},
+                {name: "Finger of Death", level: 7},
+                {name: "Fire Storm", level: 7},
+                {name: "Plane Shift", level: 7},
+                {name: "Power Word Pain", level: 7},
+                {name: "Prismatic Spray", level: 7},
+                {name: "Reverse Gravity", level: 7},
+                {name: "Teleport", level: 7},
+                {name: "Whirlwind", level: 7},
+                {name: "Abi-Dalzim's Horrid Wilting", level: 8},
+                {name: "Dominate Monster", level: 8},
+                {name: "Earthquake", level: 8},
+                {name: "Incendiary Cloud", level: 8},
+                {name: "Power Word Stun", level: 8},
+                {name: "Sunburst", level: 8},
+                {name: "Gate", level: 9},
+                {name: "Mass Polymorph", level: 9},
+                {name: "Meteor Swarm", level: 9},
+                {name: "Power Word Kill", level: 9},
+                {name: "Psychic Scream", level: 9},
+                {name: "Time Stop", level: 9},
+                {name: "Wish", level: 9}
+            ],
+            Warlock: [
+                {name: "Blade Ward", level: 0},
+                {name: "Booming Blade", level: 0},
+                {name: "Chill Touch", level: 0},
+                {name: "Create Bonfire", level: 0},
+                {name: "Eldritch Blast", level: 0},
+                {name: "Friends", level: 0},
+                {name: "Frostbite", level: 0},
+                {name: "Green-Flame Blade", level: 0},
+                {name: "Infestation", level: 0},
+                {name: "Lightning Lure", level: 0},
+                {name: "Mage Hand", level: 0},
+                {name: "Magic Stone", level: 0},
+                {name: "Mind Sliver", level: 0},
+                {name: "Minor Illusion", level: 0},
+                {name: "Poison Spray", level: 0},
+                {name: "Prestidigitation", level: 0},
+                {name: "Sword Burst", level: 0},
+                {name: "Thunderclap", level: 0},
+                {name: "Toll the Dead", level: 0},
+                {name: "True Strike", level: 0},
+                {name: "Armor of Agathys", level: 1},
+                {name: "Arms of Hadar", level: 1},
+                {name: "Cause Fear", level: 1},
+                {name: "Charm Person", level: 1},
+                {name: "Comprehend Languages", level: 1},
+                {name: "Distort Value", level: 1},
+                {name: "Expeditious Retreat", level: 1},
+                {name: "Hellish Rebuke", level: 1},
+                {name: "Hex", level: 1},
+                {name: "Illusory Script", level: 1},
+                {name: "Protection from Evil and Good", level: 1},
+                {name: "Unseen Servant", level: 1},
+                {name: "Witch Bolt", level: 1},
+                {name: "Cloud of Daggers", level: 2},
+                {name: "Crown of Madness", level: 2},
+                {name: "Darkness", level: 2},
+                {name: "Earthbind", level: 2},
+                {name: "Enthrall", level: 2},
+                {name: "Hold Person", level: 2},
+                {name: "Invisibility", level: 2},
+                {name: "Mind Spike", level: 2},
+                {name: "Mirror Image", level: 2},
+                {name: "Misty Step", level: 2},
+                {name: "Ray of Enfeeblement", level: 2},
+                {name: "Shatter", level: 2},
+                {name: "Spider Climb", level: 2},
+                {name: "Suggestion", level: 2},
+                {name: "Counterspell", level: 3},
+                {name: "Dispel Magic", level: 3},
+                {name: "Enemies Abound", level: 3},
+                {name: "Fear", level: 3},
+                {name: "Fly", level: 3},
+                {name: "Gaseous Form", level: 3},
+                {name: "Hunger of Hadar", level: 3},
+                {name: "Hypnotic Pattern", level: 3},
+                {name: "Intellect Fortress", level: 3},
+                {name: "Magic Circle", level: 3},
+                {name: "Major Image", level: 3},
+                {name: "Remove Curse", level: 3},
+                {name: "Spirit Shroud", level: 3},
+                {name: "Summon Fey", level: 3},
+                {name: "Summon Lesser Demons", level: 3},
+                {name: "Summon Shadowspawn", level: 3},
+                {name: "Thunder Step", level: 3},
+                {name: "Tongues", level: 3},
+                {name: "Vampiric Touch", level: 3},
+                {name: "Banishment", level: 4},
+                {name: "Blight", level: 4},
+                {name: "Charm Monster", level: 4},
+                {name: "Dimension Door", level: 4},
+                {name: "Elemental Bane", level: 4},
+                {name: "Galder's Speedy Courier", level: 4},
+                {name: "Hallucinatory Terrain", level: 4},
+                {name: "Shadow of Moil", level: 4},
+                {name: "Sickening Radiance", level: 4},
+                {name: "Summon Aberration", level: 4},
+                {name: "Summon Greater Demon", level: 4},
+                {name: "Contact Other Plane", level: 5},
+                {name: "Danse Macabre", level: 5},
+                {name: "Dream", level: 5},
+                {name: "Enervation", level: 5},
+                {name: "Far Step", level: 5},
+                {name: "Hold Monster", level: 5},
+                {name: "Infernal Calling", level: 5},
+                {name: "Negative Energy Flood", level: 5},
+                {name: "Planar Binding", level: 5},
+                {name: "Scrying", level: 5},
+                {name: "Synaptic Static", level: 5},
+                {name: "Teleportation Circle", level: 5},
+                {name: "Wall of Light", level: 5},
+                {name: "Arcane Gate", level: 6},
+                {name: "Circle of Death", level: 6},
+                {name: "Conjure Fey", level: 6},
+                {name: "Create Undead", level: 6},
+                {name: "Eyebite", level: 6},
+                {name: "Flesh to Stone", level: 6},
+                {name: "Investiture of Flame", level: 6},
+                {name: "Investiture of Ice", level: 6},
+                {name: "Investiture of Stone", level: 6},
+                {name: "Investiture of Wind", level: 6},
+                {name: "Mass Suggestion", level: 6},
+                {name: "Mental Prison", level: 6},
+                {name: "Scatter", level: 6},
+                {name: "Soul Cage", level: 6},
+                {name: "Summon Fiend", level: 6},
+                {name: "Tasha's Otherworldly Guise", level: 6},
+                {name: "True Seeing", level: 6},
+                {name: "Crown of Stars", level: 7},
+                {name: "Etherealness", level: 7},
+                {name: "Finger of Death", level: 7},
+                {name: "Forcecage", level: 7},
+                {name: "Plane Shift", level: 7},
+                {name: "Power Word Pain", level: 7},
+                {name: "Project Image", level: 7},
+                {name: "Demiplane", level: 8},
+                {name: "Dominate Monster", level: 8},
+                {name: "Feeblemind", level: 8},
+                {name: "Glibness", level: 8},
+                {name: "Maddening Darkness", level: 8},
+                {name: "Power Word Stun", level: 8},
+                {name: "Astral Projection", level: 9},
+                {name: "Blade of Disaster", level: 9},
+                {name: "Foresight", level: 9},
+                {name: "Gate", level: 9},
+                {name: "Imprisonment", level: 9},
+                {name: "Power Word Kill", level: 9},
+                {name: "Psychic Scream", level: 9},
+                {name: "True Polymorph", level: 9},
+                {name: "Weird", level: 9}
+            ],
+            Wizard: [
+                {name: "Acid Splash", level: 0},
+                {name: "Blade Ward", level: 0},
+                {name: "Booming Blade", level: 0},
+                {name: "Chill Touch", level: 0},
+                {name: "Control Flames", level: 0},
+                {name: "Create Bonfire", level: 0},
+                {name: "Dancing Lights", level: 0},
+                {name: "Fire Bolt", level: 0},
+                {name: "Friends", level: 0},
+                {name: "Frostbite", level: 0},
+                {name: "Green-Flame Blade", level: 0},
+                {name: "Gust", level: 0},
+                {name: "Infestation", level: 0},
+                {name: "Light", level: 0},
+                {name: "Lightning Lure", level: 0},
+                {name: "Mage Hand", level: 0},
+                {name: "Mending", level: 0},
+                {name: "Message", level: 0},
+                {name: "Mind Sliver", level: 0},
+                {name: "Minor Illusion", level: 0},
+                {name: "Mold Earth", level: 0},
+                {name: "Poison Spray", level: 0},
+                {name: "Prestidigitation", level: 0},
+                {name: "Ray of Frost", level: 0},
+                {name: "Shape Water", level: 0},
+                {name: "Shocking Grasp", level: 0},
+                {name: "Sword Burst", level: 0},
+                {name: "Thunderclap", level: 0},
+                {name: "Toll the Dead", level: 0},
+                {name: "True Strike", level: 0},
+                {name: "Absorb Elements", level: 1},
+                {name: "Alarm", level: 1},
+                {name: "Burning Hands", level: 1},
+                {name: "Catapult", level: 1},
+                {name: "Cause Fear", level: 1},
+                {name: "Charm Person", level: 1},
+                {name: "Chromatic Orb", level: 1},
+                {name: "Color Spray", level: 1},
+                {name: "Comprehend Languages", level: 1},
+                {name: "Detect Magic", level: 1},
+                {name: "Disguise Self", level: 1},
+                {name: "Distort Value", level: 1},
+                {name: "Earth Tremor", level: 1},
+                {name: "Expeditious Retreat", level: 1},
+                {name: "False Life", level: 1},
+                {name: "Feather Fall", level: 1},
+                {name: "Find Familiar", level: 1},
+                {name: "Fog Cloud", level: 1},
+                {name: "Grease", level: 1},
+                {name: "Ice Knife", level: 1},
+                {name: "Identify", level: 1},
+                {name: "Illusory Script", level: 1},
+                {name: "Jump", level: 1},
+                {name: "Longstrider", level: 1},
+                {name: "Mage Armor", level: 1},
+                {name: "Magic Missile", level: 1},
+                {name: "Protection from Evil and Good", level: 1},
+                {name: "Ray of Sickness", level: 1},
+                {name: "Shield", level: 1},
+                {name: "Silent Image", level: 1},
+                {name: "Sleep", level: 1},
+                {name: "Snare", level: 1},
+                {name: "Tasha's Hideous Laughter", level: 1},
+                {name: "Tenser's Floating Disk", level: 1},
+                {name: "Thunderwave", level: 1},
+                {name: "Unseen Servant", level: 1},
+                {name: "Witch Bolt", level: 1},
+                {name: "Alter Self", level: 2},
+                {name: "Arcane Lock", level: 2},
+                {name: "Blindness/Deafness", level: 2},
+                {name: "Blur", level: 2},
+                {name: "Cloud of Daggers", level: 2},
+                {name: "Continual Flame", level: 2},
+                {name: "Crown of Madness", level: 2},
+                {name: "Darkness", level: 2},
+                {name: "Darkvision", level: 2},
+                {name: "Detect Thoughts", level: 2},
+                {name: "Dragon's Breath", level: 2},
+                {name: "Dust Devil", level: 2},
+                {name: "Earthbind", level: 2},
+                {name: "Enlarge/Reduce", level: 2},
+                {name: "Flaming Sphere", level: 2},
+                {name: "Gentle Repose", level: 2},
+                {name: "Gust of Wind", level:2},
+                {name: "Hold Person", level: 2},
+                {name: "Invisibility", level:2},
+                {name: "Knock", level: 2},
+                {name: "Levitate", level: 2},
+                {name: "Locate Object", level: 2},
+                {name: "Magic Mouth", level: 2},
+                {name: "Magic Weapon", level: 2},
+                {name: "Maximilian's Earthen Grasp", level: 2},
+                {name: "Melf's Acid Arrow", level: 2},
+                {name: "Mirror Image", level: 2},
+                {name: "Misty Step", level: 2},
+                {name: "Nystul's Magic Aura", level: 2},
+                {name: "Phantasmal Force", level: 2},
+                {name: "Pyrotechnics", level: 2},
+                {name: "Ray of Enfeeblement", level: 2},
+                {name: "Rope Trick", level: 2},
+                {name: "Scorching Ray", level: 2},
+                {name: "See Invisibility", level: 2},
+                {name: "ShadowBlade", level: 2},
+                {name: "Shatter", level: 2},
+                {name: "Skywrite", level: 2},
+                {name: "Snilloc's Snowball Swarm", level: 2},
+                {name: "Spider Climb", level: 2},
+                {name: "Suggestion", level: 2},
+                {name: "Tasha's Mind Whip", level: 2},
+                {name: "Warding Wind", level: 2},
+                {name: "Web", level: 2},
+                {name: "Animate Dead", level: 3},
+                {name: "Bestow Curse", level: 3},
+                {name: "Blink", level: 3},
+                {name: "Catnap", level: 3},
+                {name: "Clairvoyance", level: 3},
+                {name: "Counterspell", level: 3},
+                {name: "Dispel Magic", level: 3},
+                {name: "Enemies Abound", level: 3},
+                {name: "Erupting Earth", level: 3},
+                {name: "Fear", level: 3},
+                {name: "Feign Death", level: 3},
+                {name: "Fireball", level: 3},
+                {name: "Flame Arrows", level: 3},
+                {name: "Fly", level: 3},
+                {name: "Galder's Tower", level: 3},
+                {name: "Gaseous Form", level: 3},
+                {name: "Glyph of Warding", level: 3},
+                {name: "Haste", level: 3},
+                {name: "Hypnotic Pattern", level: 3},
+                {name: "Intellect Fortress", level: 3},
+                {name: "Leomund's Tiny Hut", level: 3},
+                {name: "Life Transference", level: 3},
+                {name: "Lightning Bolt", level: 3},
+                {name: "Magic Circle", level: 3},
+                {name: "Major Image", level: 3},
+                {name: "Melf's Minute Meteors", level: 3},
+                {name: "Nondetection", level: 3},
+                {name: "Phantom Steed", level: 3},
+                {name: "Protection from Energy", level: 3},
+                {name: "Remove Curse", level: 3},
+                {name: "Sending", level: 3},
+                {name: "Sleet Storm", level: 3},
+                {name: "Slow", level: 3},
+                {name: "Speak with Dead", level: 3},
+                {name: "Spirit Shroud", level: 3},
+                {name: "Stinking Cloud", level: 3},
+                {name: "Summon Lesser Demons", level: 3},
+                {name: "Thunder Step", level: 3},
+                {name: "Tidal Wave", level: 3},
+                {name: "Tiny Servant", level: 3},
+                {name: "Tongues", level: 3},
+                {name: "Vampiric Touch", level: 3},
+                {name: "Wall of Sand", level: 3},
+                {name: "Wall of Water", level: 3},
+                {name: "Water Breathing", level: 3},
+                {name: "Arcane Eye", level: 4},
+                {name: "Banishment", level: 4},
+                {name: "Blight", level: 4},
+                {name: "Charm Monster", level: 4},
+                {name: "Confusion", level: 4},
+                {name: "Conjure Minor Elementals", level: 4},
+                {name: "Control Water", level: 4},
+                {name: "Dimension Door", level: 4},
+                {name: "Divination", level: 4},
+                {name: "Elemental Bane", level: 4},
+                {name: "Evard's Black Tentacles", level: 4},
+                {name: "Fabricate", level: 4},
+                {name: "Fire Shield", level: 4},
+                {name: "Greater Invisibility", level: 4},
+                {name: "Hallucinatory Terrain", level: 4},
+                {name: "Ice Storm", level: 4},
+                {name: "Leomund's Secret Chest", level: 4},
+                {name: "Locate Creature", level: 4},
+                {name: "Mordenkainen's Faithful Hound", level: 4},
+                {name: "Mordenkainen's Private Sanctum", level: 4},
+                {name: "Otiluke's Resilient Sphere", level: 4},
+                {name: "Phantasmal Killer", level: 4},
+                {name: "Polymorph", level: 4},
+                {name: "Sickening Radiance", level: 4},
+                {name: "Stone Shape", level: 4},
+                {name: "Stoneskin", level: 4},
+                {name: "Storm Sphere", level: 4},
+                {name: "Summon Greater Demon", level: 4},
+                {name: "Vitriolic Sphere", level: 4},
+                {name: "Wall of Fire", level: 4},
+                {name: "Watery Sphere", level: 4},
+                {name: "Animate Objects", level: 5},
+                {name: "Bigby's Hand", level: 5},
+                {name: "Cloudkill", level: 5},
+                {name: "Cone of Cold", level: 5},
+                {name: "Conjure Elemental", level: 5},
+                {name: "Contact Other Plane", level: 5},
+                {name: "Control Winds", level: 5},
+                {name: "Creation", level: 5},
+                {name: "Danse Macabre", level: 5},
+                {name: "Dawn", level: 5},
+                {name: "Dominate Person", level: 5},
+                {name: "Dream", level: 5},
+                {name: "Enervation", level: 5},
+                {name: "Far Step", level: 5},
+                {name: "Geas", level: 5},
+                {name: "Hold Monster", level: 5},
+                {name: "Immolation", level: 5},
+                {name: "Legend Lore", level: 5},
+                {name: "Mislead", level: 5},
+                {name: "Modify Memory", level: 5},
+                {name: "Negative Energy Flood", level: 5},
+                {name: "Passwall", level: 5},
+                {name: "Planar Binding", level: 5},
+                {name: "Rary's Telepathic Bond", level: 5},
+                {name: "Scrying", level: 5},
+                {name: "Seeming", level: 5},
+                {name: "Skill Empowerment", level: 5},
+                {name: "Steel Wind Strike", level: 5},
+                {name: "Summon Draconic Spirit", level: 5},
+                {name: "Synaptic Static", level: 5},
+                {name: "Telekinesis", level: 5},
+                {name: "Teleportation Circle", level: 5},
+                {name: "Transmute Rock", level: 5},
+                {name: "Wall of Force", level: 5},
+                {name: "Wall of Light", level: 5},
+                {name: "Wall of Stone", level: 5},
+                {name: "Arcane Gate", level: 6},
+                {name: "Chain Lightning", level: 6},
+                {name: "Circle of Death", level: 6},
+                {name: "Contingency", level: 6},
+                {name: "Create Homunculus", level: 6},
+                {name: "Create Undead", level: 6},
+                {name: "Disintegrate", level: 6},
+                {name: "Drawmij's Instant Summons", level: 6},
+                {name: "Eyebite", level: 6},
+                {name: "Flesh to Stone", level: 6},
+                {name: "Globe of Invulnerability", level: 6},
+                {name: "Guards and Wards", level: 6},
+                {name: "Investiture of Flame", level: 6},
+                {name: "Investiture of Ice", level: 6},
+                {name: "Investiture of Stone", level: 6},
+                {name: "Investiture of Wind", level: 6},
+                {name: "Magic Jar", level: 6},
+                {name: "Mass Suggestion", level: 6},
+                {name: "Mental Prison", level: 6},
+                {name: "Move Earth", level: 6},
+                {name: "Otiluke's Freezing Sphere", level: 6},
+                {name: "Otto's Irresistible Dance", level: 6},
+                {name: "Programmed Illusion", level: 6},
+                {name: "Scatter", level: 6},
+                {name: "Soul Cage", level: 6},
+                {name: "Sunbeam", level: 6},
+                {name: "Tasha's Otherworldly Guise", level: 6},
+                {name: "True Seeing", level: 6},
+                {name: "Wall of Ice", level: 6},
+                {name: "Crown of Stars", level: 7},
+                {name: "Delayed Blast Fireball", level: 7},
+                {name: "Etherealness", level: 7},
+                {name: "Finger of Death", level: 7},
+                {name: "Forcecage", level: 7},
+                {name: "Mirage Arcane", level: 7},
+                {name: "Mordenkainen's Magnificent Mansion", level: 7},
+                {name: "Mordenkainen's Sword", level: 7},
+                {name: "Plane Shift", level: 7},
+                {name: "Power Word Pain", level: 7},
+                {name: "Prismatic Spray", level: 7},
+                {name: "Project Image", level: 7},
+                {name: "Reverse Gravity", level: 7},
+                {name: "Sequester", level: 7},
+                {name: "Simulacrum", level: 7},
+                {name: "Symbol", level: 7},
+                {name: "Teleport", level: 7},
+                {name: "Whirlwind", level: 7},
+                {name: "Abi-Dalzim's Horrid Wilting", level: 8},
+                {name: "Antimagic Field", level: 8},
+                {name: "Antipathy/Sympathy", level: 8},
+                {name: "Clone", level: 8},
+                {name: "Control Weather", level: 8},
+                {name: "Demiplane", level: 8},
+                {name: "Dominate Monster", level: 8},
+                {name: "Feeblemind", level: 8},
+                {name: "Illusory Dragon", level: 8},
+                {name: "Incendiary Cloud", level: 8},
+                {name: "Maddening Darkness", level: 8},
+                {name: "Maze", level: 8},
+                {name: "Mind Blank", level: 8},
+                {name: "Power Word Stun", level: 8},
+                {name: "Sunburst", level: 8},
+                {name: "Telepathy", level: 8},
+                {name: "Astral Projection", level: 9},
+                {name: "Blade of Disaster", level: 9},
+                {name: "Foresight", level: 9},
+                {name: "Gate", level: 9},
+                {name: "Imprisonment", level: 9},
+                {name: "Invulnerability", level: 9},
+                {name: "Mass Polymorph", level: 9},
+                {name: "Meteor Swarm", level: 9},
+                {name: "Power Word Kill", level: 9},
+                {name: "Prismatic Wall", level: 9},
+                {name: "Psychic Scream", level: 9},
+                {name: "Shapechange", level: 9},
+                {name: "Time Stop", level: 9},
+                {name: "True Polymorph", level: 9},
+                {name: "Weird", level: 9},
+                {name: "Wish", level: 9}
+            ]
+        };
+
+        const classSelect = document.getElementById('class-select');
+        const spellSelect = document.getElementById('spell-select');
+        const addSpellBtn = document.getElementById('add-spell');
+        const spellList = document.getElementById('spell-list');
+        const closeBtn = document.querySelector('.close-btn');
+        const sendToBtn = document.getElementById('sendToBtn');
+        const sendToModal = document.getElementById('sendToModal');
+        const closeSendToModal = document.getElementById('closeSendToModal');
+        const longRestBtn = document.getElementById('longRestBtn');
+        const removeSpellBtn = document.getElementById('removeSpellBtn');
+        //         // get the listboxes
+        // const listBox1 = document.getElementById('listBox1');
+        // const listBox2 = document.getElementById('listBox2');
+
+        // Populate the spell select element based on the chosen class
+        classSelect.addEventListener('change', () => {
+            const selectedClass = classSelect.value;
+            spellSelect.innerHTML = '<option value="">Select a spell</option>';
+            if (selectedClass) {
+                spellsByClass[selectedClass].forEach(spell => {
+                    const option = document.createElement('option');
+                    option.value = `${spell.level}:${spell.name}`;
+                    option.textContent = `${spell.name} (Level ${spell.level})`;
+                    spellSelect.appendChild(option);
+                });
+            }
+        });
+
+        // Add spell to the list
+        addSpellBtn.addEventListener('click', () => {
+            const selectedClass = classSelect.value;
+            const selectedSpell = spellSelect.value;
+            if (selectedClass && selectedSpell) {
+                const [level, name] = selectedSpell.split(':');
+                const li = document.createElement('li');
+                li.textContent = `${selectedClass}, ${level}, ${name}`;
+                spellList.appendChild(li);
+                
+                // Sort the spell list
+                const spells = Array.from(spellList.children);
+                spells.sort((a, b) => {
+                    const [classA, levelA, nameA] = a.textContent.split(', ');
+                    const [classB, levelB, nameB] = b.textContent.split(', ');
+                    return classA.localeCompare(classB) || levelA - levelB || nameA.localeCompare(nameB);
+                });
+                spellList.innerHTML = '';
+                spells.forEach(spell => spellList.appendChild(spell));
+            }
+        });
+
+        // Close button functionality
+        closeBtn.addEventListener('click', () => {
+            document.querySelector('.modal').style.display = 'none';
+        });
+
+        // Send To button functionality
+        sendToBtn.addEventListener('click', () => {
+            sendToModal.style.display = 'block';
+            
+            // Clear previous content
+            for (let i = 0; i <= 9; i++) {
+                document.getElementById(`level${i}Spells`).innerHTML = '';
+            }
+            
+            // Sort spells by level and add them to the appropriate listboxes
+            const spells = Array.from(spellList.children);
+            spells.forEach(spell => {
+                const [className, level, spellName] = spell.textContent.split(', ');
+                const listBox = document.getElementById(`level${level}Spells`);
+                const option = document.createElement('option');
+                if (level === '0') {
+                    option.textContent = `${className} - Cantrip - ${spellName}`;
+                } else {
+                    option.textContent = `${className} - Lv:${level} - ${spellName}`;
+                }
+                listBox.appendChild(option);
+            });
+            
+            // Clear the spell list
+            spellList.innerHTML = '';
+        });
+
+        // Close Send To modal
+        closeSendToModal.addEventListener('click', () => {
+            sendToModal.style.display = 'none';
+        });
+
+        // Long Rest button functionality
+        longRestBtn.addEventListener('click', () => {
+            for (let i = 0; i <= 9; i++) {
+                const listBox = document.getElementById(`level${i}Spells`);
+                Array.from(listBox.options).forEach(option => {
+                    option.selected = false;
+                });
+            }
+        });
+
+        // Double-click to remove item from spell list
+        spellList.addEventListener('dblclick', (event) => {
+            if (event.target.tagName === 'LI') {
+                event.target.remove();
+            }
+        });
+
+        let lastClickedItem = null;
+spellList.addEventListener('click', (event) => {
+  if (event.target.tagName === 'LI') {
+    lastClickedItem = event.target;
+  }
+});
+
+removeSpellBtn.addEventListener('click', () => {
+  if (lastClickedItem) {
+    lastClickedItem.remove();
+    lastClickedItem = null;
+  }
+});
+//  // function to save the listbox items to a cookie
+//  function saveListBoxItems() {
+//             const items1 = Array.from(listBox1.options).map(option => option.value);
+//             const items2 = Array.from(listBox2.options).map(option => option.value);
+
+//             const cookieValue = JSON.stringify({ listBox1: items1, listBox2: items2 });
+//             document.cookie = `listBoxItems=${cookieValue}; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+//         }
+
+//         // function to load the listbox items from a cookie
+//         function loadListBoxItems() {
+//             const cookieValue = document.cookie.match(/listBoxItems=([^;]*)/);
+//             if (cookieValue) {
+//                 const items = JSON.parse(cookieValue[1]);
+//                 listBox1.innerHTML = '';
+//                 listBox2.innerHTML = '';
+
+//                 items.listBox1.forEach(item => {
+//                     const option = document.createElement('option');
+//                     option.value = item;
+//                     listBox1.appendChild(option);
+//                 });
+
+//                 items.listBox2.forEach(item => {
+//                     const option = document.createElement('option');
+//                     option.value = item;
+//                     listBox2.appendChild(option);
+//                 });
+//             }
+//         }
+    
+    </script>
+<script>
+(function() {
+    var originalConsoleError = console.error;
+    console.error = function() {
+        window.parent.postMessage({
+            type: 'error',
+            message: Array.from(arguments).join(' ')
+        }, '*');
+        originalConsoleError.apply(console, arguments);
+    };
+
+    window.addEventListener('error', function(event) {
+        window.parent.postMessage({
+            type: 'error',
+            message: event.message,
+            source: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+            error: event.error ? event.error.stack : null
+        }, '*');
+    });
+
+    window.addEventListener('unhandledrejection', function(event) {
+        window.parent.postMessage({
+            type: 'error',
+            message: 'Unhandled Promise Rejection: ' + event.reason,
+            error: event.reason ? event.reason.stack : null
+        }, '*');
+    });
+    
+})();
+</script></body>
+</html>
